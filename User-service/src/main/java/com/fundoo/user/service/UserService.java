@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public interface UserService {
+
     ResponseDto register(RegisterUserDto registerUserDto) throws MessagingException, UnsupportedEncodingException;
 
     Object verifyUser(String token) throws UnsupportedEncodingException;

@@ -7,6 +7,9 @@ import com.fundoo.label.repository.LabelRepository;
 import com.fundoo.note.exception.AuthenticationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,20 +17,25 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@RefreshScope
 public class LabelService implements ILabelService {
 
     @Autowired
     LabelRepository labelRepository;
 
     @Autowired
+    @Lazy
     RestTemplate restTemplate;
+
+    @Value("{microservice.user-service.endpoints.endpoint.uri}")
+    private String ENDPOINT_URL;
 
     @Override
     public boolean createLabel(LabelDto labelDto, String token) throws AuthenticationException {
         Label label = new Label();
         BeanUtils.copyProperties(labelDto, label);
         try {
-            Integer userId = restTemplate.getForObject("http://user-service/fundoo/user/id/" + token, Integer.class);
+            Integer userId = restTemplate.getForObject(ENDPOINT_URL + token, Integer.class);
             label.setUserId(userId);
             labelRepository.save(label);
             return true;
@@ -36,11 +44,10 @@ public class LabelService implements ILabelService {
         }
     }
 
-
     @Override
     public boolean editLabel(LabelDto labelDto, String token) throws AuthenticationException {
         try {
-            restTemplate.getForObject("http://user-service/fundoo/user/id/" + token, Integer.class);
+            restTemplate.getForObject(ENDPOINT_URL + token, Integer.class);
         } catch (Exception exception) {
             throw new AuthenticationException("User not authenticate");
         }

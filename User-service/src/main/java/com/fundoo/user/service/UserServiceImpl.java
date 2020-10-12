@@ -37,7 +37,6 @@ public class UserServiceImpl implements UserService {
     public ResponseDto register(RegisterUserDto registerUserDto) {
         registerUserDto.password = bCryptPasswordEncoder.encode(registerUserDto.password);
         User user = new User(registerUserDto);
-
         Optional<User> byEmail = userRepository.findByEmail(user.getEmail());
         if (byEmail.isPresent())
             throw new RegistrationException("User already register", 400);
@@ -73,8 +72,6 @@ public class UserServiceImpl implements UserService {
         if (encoder.matches(loginDto.password, user.get().getPassword())) {
             if (user.get().isVarified() == true) {
                 String token = jwtUtil.createJwtToken(CLIENT_ID);
-                // RedisService.setToken(CLIENT_ID, token);
-//                RedisService.setToken(user.get().getId(), user.get());
                 RedisService.setToken(CLIENT_ID, user.get());
                 return token;
             }
@@ -126,6 +123,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int getUserId(String token) {
+        System.out.println("tokenv "+token);
         Object verify = jwtUtil.verify(token);
         String email = verify.toString();
         User user = RedisService.getToken(email);
